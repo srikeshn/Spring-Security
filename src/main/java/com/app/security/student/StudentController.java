@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/api/v1/students")
 public class StudentController {
 
-	private static final List<Student> students = Arrays.asList(new Student(1, "Srikesh"), new Student(2, "DBS"),
-			new Student(3, "Wells Fargo"), new Student(4, "OPTUM"));
+	private static final List<Student> students = Arrays.asList(new Student(1, "Srikesh"), new Student(2, "Giri"),
+			new Student(3, "Praveen"), new Student(4, "Gopi"));
 
 	@GetMapping(path = "{studentId}")
 	public Student getStudent(@PathVariable(name = "studentId") Integer studentId) {
