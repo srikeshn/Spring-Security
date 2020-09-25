@@ -1,12 +1,15 @@
 package com.app.security;
+import static com.app.security.ApplicationUserPermission.COURSE_READ;
+import static com.app.security.ApplicationUserPermission.COURSE_WRITE;
+import static com.app.security.ApplicationUserPermission.STUDENT_READ;
+import static com.app.security.ApplicationUserPermission.STUDENT_WRITE;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import com.google.common.collect.Sets;
-import static com.app.security.ApplicationUserPermission.*;
 
 public enum ApplicationUserRole {
 	// Here Each ROLE has Authorities which we are calling as Permissions.
