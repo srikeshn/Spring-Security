@@ -29,13 +29,21 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
-		<!-- Guava will give us some helpers: 
-		provides utility methods for collections, caching, primitives support, concurrency, common annotations, string processing, I/O, and validations.  --> 
+		<!-- Guava will give us some helpers: provides utility methods for collections, 
+			caching, primitives support, concurrency, common annotations, string processing, 
+			I/O, and validations. -->
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>28.1-jre</version>
 		</dependency>
+		<!-- Thymeleaf is a templating engine to implement our custom login page -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+			<version>2.3.4.RELEASE</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
