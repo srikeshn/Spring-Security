@@ -1,7 +1,5 @@
 package com.app.security;
 
-import static com.app.security.ApplicationUserRole.ADMIN;
-import static com.app.security.ApplicationUserRole.ADMINTRAINEE;
 import static com.app.security.ApplicationUserRole.STUDENT;
 
 import java.util.concurrent.TimeUnit;
@@ -9,18 +7,16 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import com.app.security.auth.ApplicationUserService;
 
 @Configuration
 @EnableWebSecurity
@@ -28,10 +24,13 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 
 	private final PasswordEncoder passwordEncoder;
+	
+	private final ApplicationUserService userDetailsService;
 
 	@Autowired
-	public ApplicationSecurity(PasswordEncoder passwordEncoder) {
+	public ApplicationSecurity(PasswordEncoder passwordEncoder, ApplicationUserService userDetailsService) {
 		this.passwordEncoder = passwordEncoder;
+		this.userDetailsService = userDetailsService;
 	}
 
 	@Override
@@ -76,23 +75,44 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 					.deleteCookies("JSESSIONID","remember-me")
 					.logoutSuccessUrl("/login");
 	}
-
-	@Override
+	
+	
 	@Bean
-	protected UserDetailsService userDetailsService() {
-		UserDetails studentUser = User.builder().username("srikesh").password(passwordEncoder.encode("password"))
-				// .roles(STUDENT.name())
-				.authorities(STUDENT.getGrantedAuthorities()).build();
-
-		UserDetails adminUser = User.builder().username("Aishu").password(passwordEncoder.encode("password123"))
-				// .roles(ADMIN.name())
-				.authorities(ADMIN.getGrantedAuthorities()).build();
-
-		UserDetails adminTrainee = User.builder().username("Hero").password(passwordEncoder.encode("password123"))
-				// .roles(ADMINTRAINEE.name())
-				.authorities(ADMINTRAINEE.getGrantedAuthorities()).build();
-
-		return new InMemoryUserDetailsManager(studentUser, adminUser, adminTrainee);
-
+	public DaoAuthenticationProvider daoAuthenticationProvider() {
+		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+		provider.setPasswordEncoder(passwordEncoder);
+		provider.setUserDetailsService(userDetailsService);
+		return provider;
 	}
+	
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+		auth.authenticationProvider(daoAuthenticationProvider());
+	}
+	
+	
+
+	/*
+	 * @Override
+	 * 
+	 * @Bean protected UserDetailsService userDetailsService() { UserDetails
+	 * studentUser =
+	 * User.builder().username("srikesh").password(passwordEncoder.encode("password"
+	 * )) // .roles(STUDENT.name())
+	 * .authorities(STUDENT.getGrantedAuthorities()).build();
+	 * 
+	 * UserDetails adminUser =
+	 * User.builder().username("Aishu").password(passwordEncoder.encode(
+	 * "password123")) // .roles(ADMIN.name())
+	 * .authorities(ADMIN.getGrantedAuthorities()).build();
+	 * 
+	 * UserDetails adminTrainee =
+	 * User.builder().username("Hero").password(passwordEncoder.encode("password123"
+	 * )) // .roles(ADMINTRAINEE.name())
+	 * .authorities(ADMINTRAINEE.getGrantedAuthorities()).build();
+	 * 
+	 * return new InMemoryUserDetailsManager(studentUser, adminUser, adminTrainee);
+	 * 
+	 * }
+	 */
 }
