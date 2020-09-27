@@ -15,7 +15,7 @@ public enum ApplicationUserRole {
 	// Here Each ROLE has Authorities which we are calling as Permissions.
 	//example ADMIN is a ROLE and STUDENT_READ is a authority.
 
-	STUDENT(Sets.newHashSet()),
+	STUDENT(Sets.newHashSet(STUDENT_READ)),
 	ADMIN(Sets.newHashSet(COURSE_READ, COURSE_WRITE, STUDENT_READ, STUDENT_WRITE)),
 	ADMINTRAINEE(Sets.newHashSet(STUDENT_READ, COURSE_READ));
 	

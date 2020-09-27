@@ -4,6 +4,8 @@ import static com.app.security.ApplicationUserRole.STUDENT;
 
 import java.util.concurrent.TimeUnit;
 
+import javax.crypto.SecretKey;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,10 +15,14 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.app.security.auth.ApplicationUserService;
+import com.app.security.jwt.JwtConfig;
+import com.app.security.jwt.JwtTokenVerifier;
+import com.app.security.jwt.JwtUsernameAndPasswordAuthFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -26,20 +32,34 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 	private final PasswordEncoder passwordEncoder;
 	
 	private final ApplicationUserService userDetailsService;
-
+	
+	private final JwtConfig jwtconfig;
+	
 	@Autowired
-	public ApplicationSecurity(PasswordEncoder passwordEncoder, ApplicationUserService userDetailsService) {
+	public ApplicationSecurity(PasswordEncoder passwordEncoder, ApplicationUserService userDetailsService,
+			JwtConfig jwtconfig, SecretKey secretKey) {
 		this.passwordEncoder = passwordEncoder;
 		this.userDetailsService = userDetailsService;
+		this.jwtconfig = jwtconfig;
+		this.secretKey = secretKey;
 	}
+
+	private final SecretKey secretKey;
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 				.csrf().disable() // below line will send UI XSRF token
 				//.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and()
+				//Since JWT are stateless in nature, we need to set below
+				.sessionManagement()
+					.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+				.and()
+				.addFilter(new JwtUsernameAndPasswordAuthFilter(authenticationManager(), jwtconfig, secretKey))
+				.addFilterAfter(new JwtTokenVerifier(jwtconfig, secretKey), /* tokenVerifier filter will execute after : */ JwtUsernameAndPasswordAuthFilter.class)
 				.authorizeRequests()
-				.antMatchers("/", "index", "/css/*", "/js/*").permitAll().antMatchers("/api/**").hasRole(STUDENT.name())
+				.antMatchers("/", "index", "/css/*", "/js/*").permitAll()
+				.antMatchers("/api/**").hasRole(STUDENT.name())
 				// The Order we are declaring AntMatchers is very important, it may break the
 				// chain when first one matches and fails criteria.
 				/*
@@ -52,7 +72,9 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 				 * .antMatchers(HttpMethod.GET, "/management/api/**").hasAnyRole(ADMIN.name(),
 				 * ADMINTRAINEE.name())
 				 */
-				.anyRequest().authenticated().and()
+				.anyRequest()
+				.authenticated();
+				/*.and()
 				// .httpBasic() when we replace this with below, default form login will be available
 				.formLogin() // form based authentication with default login page
 					.loginPage("/login").permitAll() // to mention our custom login page
@@ -73,7 +95,7 @@ public class ApplicationSecurity extends WebSecurityConfigurerAdapter {
 					.clearAuthentication(true)
 					.invalidateHttpSession(true)
 					.deleteCookies("JSESSIONID","remember-me")
-					.logoutSuccessUrl("/login");
+					.logoutSuccessUrl("/login");*/
 	}
 	
 	
